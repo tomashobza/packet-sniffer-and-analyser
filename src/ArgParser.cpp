@@ -19,7 +19,6 @@ SnifferOptions ArgParser::parse(int argc, char *argv[])
             {"mld", no_argument, 0, 'm'},
             {"n", required_argument, 0, 'n'},
             {0, 0, 0, 0}};
-        // getopt_long stores the option index here.
         int option_index = 0;
 
         int c = getopt_long(argc, argv, "i:p:tus:d:a46gmn:", long_options, &option_index);
@@ -32,6 +31,7 @@ SnifferOptions ArgParser::parse(int argc, char *argv[])
         {
         case 'i':
             options.interface = optarg;
+            options.interfaceSpecified = true;
             break;
         case 'p':
             options.port = std::stoi(optarg);
@@ -67,7 +67,6 @@ SnifferOptions ArgParser::parse(int argc, char *argv[])
             options.num = std::stoi(optarg);
             break;
         case '?':
-            // getopt_long already printed an error message.
             break;
         default:
             abort();

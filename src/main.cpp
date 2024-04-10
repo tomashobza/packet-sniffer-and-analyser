@@ -2,10 +2,39 @@
 
 #include "types.hpp"
 #include "ArgParser.hpp"
+#include "Cmuchator.hpp"
+
+// void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
+// {
+//     printf("Got a packet with length of [%d]\n", header->len);
+//     (void)packet;
+//     (void)args;
+// }
 
 int main(int argc, char *argv[])
 {
-    SnifferOptions options = ArgParser::parse(argc, argv);
+    (void)argc;
+    (void)argv;
+    SnifferOptions options;
+
+    if (!options.interfaceSpecified)
+    {
+        std::cout << "Interface not specified. Listing available interfaces:" << std::endl;
+        Cmuchator::listInterfaces();
+    }
+
+    // char errbuf[PCAP_ERRBUF_SIZE];
+    // pcap_t *handle = pcap_open_live("eth0", BUFSIZ, 1, 1000, errbuf);
+
+    // if (handle == nullptr)
+    // {
+    //     fprintf(stderr, "Couldn't open device eth0: %s\n", errbuf);
+    //     return 2;
+    // }
+
+    // pcap_loop(handle, 10, got_packet, nullptr);
+
+    // pcap_close(handle); // Close the handle
 
     return EXIT_SUCCESS;
 }

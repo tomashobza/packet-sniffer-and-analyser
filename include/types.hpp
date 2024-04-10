@@ -2,10 +2,12 @@
 #define TYPES_H
 
 #include <string>
+#include <pcap.h>
 
 struct SnifferOptions
 {
     std::string interface;
+    bool interfaceSpecified = false;
     int port = -1; // Default value indicating no port specified
     bool tcp = false;
     bool udp = false;

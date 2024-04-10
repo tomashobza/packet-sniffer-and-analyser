@@ -1,5 +1,5 @@
-CXX=g++
-CXXFLAGS=-std=c++2a -Wall -Wextra -Werror -pedantic
+CXX=g++-13
+CXXFLAGS=-std=c++20 -Wall -Wextra -pedantic
 
 ifdef DEBUG
 CXXFLAGS+=-g
