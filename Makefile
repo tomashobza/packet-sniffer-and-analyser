@@ -18,3 +18,12 @@ run:
 	@$(TARGET)
 
 dev: build run
+
+clean:
+	@rm -rf $(TARGET) bin/*
+
+test:
+	@echo "\x1B[36m" && figlet -f slant "Tests" && echo "\x1B[0m"
+	@python3 test/testikles.py
+
+.PHONY: test
