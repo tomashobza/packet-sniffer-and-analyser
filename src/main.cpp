@@ -1,7 +1,11 @@
 #include <iostream>
 
-int main()
+#include "types.hpp"
+#include "ArgParser.hpp"
+
+int main(int argc, char *argv[])
 {
-    std::cout << "Hello, World!" << std::endl;
-    return 0;
+    SnifferOptions options = ArgParser::parse(argc, argv);
+
+    return EXIT_SUCCESS;
 }
