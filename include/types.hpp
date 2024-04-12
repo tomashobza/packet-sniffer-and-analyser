@@ -7,7 +7,6 @@
 struct SnifferOptions
 {
     std::string interface;
-    bool interfaceSpecified = false;
     int port = -1; // Default value indicating no port specified
     bool tcp = false;
     bool udp = false;
@@ -19,6 +18,9 @@ struct SnifferOptions
     int num = 1; // Default value indicating to display only one packet
     int portSource = -1;
     int portDestination = -1;
+    // Flags
+    bool interfaceSpecified = false;
+    bool help = false;
 };
 
 #endif // TYPES_H

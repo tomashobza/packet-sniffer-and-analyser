@@ -16,12 +16,39 @@ class TestIPKSniffer(unittest.TestCase):
         # Define a network interface for testing
         self.interface = "eth0"  # Change to your testing interface
 
+    def get_network_interfaces(self):
+        # This method obtains a list of active network interfaces to be used for validation
+        # Adjust the method used to list interfaces based on your system/environment
+        # For Unix/Linux, you might parse the output of "ip link show" or "ifconfig -a"
+        completed_process = subprocess.run(
+            ["ip", "link", "show"], capture_output=True, text=True
+        )
+        interfaces = [
+            line.split(":")[1].strip()
+            for line in completed_process.stdout.split("\n")
+            if ": " in line and "lo" not in line
+        ]
+        return interfaces
+
     def test_help_option(self):
         # Test if the help/usage message is displayed
         completed_process = subprocess.run(
             [self.sniffer_path, "-h"], capture_output=True, text=True
         )
         self.assertIn("usage", completed_process.stdout.lower())
+
+    def test_without_interface_specified(self):
+        # Test if a list of active interfaces is printed when no interface is specified
+        completed_process = subprocess.run(
+            [self.sniffer_path], capture_output=True, text=True
+        )
+        # Check if the output contains at least one of the known interfaces
+        output = completed_process.stdout
+        if (
+            not self.known_interfaces
+        ):  # If no interfaces could be determined, skip this test
+            self.skipTest("No known interfaces to check against")
+        self.assertTrue(any(interface in output for interface in self.known_interfaces))
 
     def test_list_interfaces(self):
         # Test listing network interfaces
