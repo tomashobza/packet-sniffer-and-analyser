@@ -4,42 +4,32 @@
 #include "ArgParser.hpp"
 #include "Cmuchator.hpp"
 
-void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
-{
-    printf("Got a packet with length of [%d]\n", header->len);
-}
-
 int main(int argc, char *argv[])
 {
-    (void)argc;
-    (void)argv;
-    SnifferOptions options;
+    // Read command line arguments
+    SnifferOptions options = ArgParser::parse(argc, argv);
 
-    options = ArgParser::parse(argc, argv);
-
+    // If help option is specified, print help message
     if (options.help)
     {
         ArgParser::help();
+        return EXIT_SUCCESS;
     }
 
+    // If interface is not specified, list available interfaces
     if (!options.interfaceSpecified)
     {
         std::cout << "Interface not specified. Listing available interfaces:" << std::endl;
+        // List available interfaces
         Cmuchator::listInterfaces();
+        return EXIT_SUCCESS;
     }
 
-    char errbuf[PCAP_ERRBUF_SIZE];
-    pcap_t *handle = pcap_open_live(options.interface.data(), BUFSIZ, 1, 1000, errbuf);
+    // Create Cmuchator instance
+    Cmuchator cmuchator(options);
 
-    if (handle == nullptr)
-    {
-        fprintf(stderr, "Couldn't open device eth0: %s\n", errbuf);
-        return 2;
-    }
-
-    pcap_loop(handle, options.num, got_packet, nullptr);
-
-    pcap_close(handle);
+    // Start packet sniffing
+    cmuchator.loop();
 
     return EXIT_SUCCESS;
 }

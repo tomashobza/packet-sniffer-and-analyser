@@ -12,10 +12,16 @@
 
 class Cmuchator
 {
+    SnifferOptions options;
+    pcap_t *handle;
+
 public:
-    Cmuchator();
+    Cmuchator(SnifferOptions options);
     ~Cmuchator();
 
+    void loop();
+
+    static void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
     static void listInterfaces();
 };
 
