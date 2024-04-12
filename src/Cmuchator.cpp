@@ -34,6 +34,7 @@ void Cmuchator::got_packet(u_char *args, const struct pcap_pkthdr *header, const
     // TODO: print packet timestamp
     printPacketTimestamp(header->ts);
     // TODO: print packet source MAC address
+
     // TODO: print packet destination MAC address
     // TODO: print packet frame length
     // TODO: print packet source IP address
@@ -75,19 +76,22 @@ void Cmuchator::printPacketTimestamp(timeval timestamp)
 
 void Cmuchator::listInterfaces()
 {
-    std::string command = "ifconfig | grep -oE '^[a-zA-Z0-9]+:' | tr -d ':'";
+    char errbuf[PCAP_ERRBUF_SIZE]; // Buffer to hold error text
+    pcap_if_t *alldevs;            // Pointer to first network interface
 
-    std::array<char, 128> buffer;
-    std::string result;
+    // Fetch the list of network devices
+    if (pcap_findalldevs(&alldevs, errbuf) == -1)
+    {
+        std::cerr << "Error in pcap_findalldevs: " << errbuf << std::endl;
+        throw std::runtime_error("pcap_findalldevs() failed!");
+    }
 
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(command.c_str(), "r"), pclose);
-    if (!pipe)
+    // Iterate over the list of devices and print their names
+    for (pcap_if_t *dev = alldevs; dev != nullptr; dev = dev->next)
     {
-        throw std::runtime_error("popen() failed!");
+        std::cout << dev->name << std::endl;
     }
-    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
-    {
-        result += buffer.data();
-    }
-    std::cout << result;
+
+    // Free the device list
+    pcap_freealldevs(alldevs);
 }
