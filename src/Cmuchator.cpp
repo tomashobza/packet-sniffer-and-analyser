@@ -39,6 +39,7 @@ void Cmuchator::got_packet(u_char *args, const struct pcap_pkthdr *header, const
     Cmuchator::printMacAddresses(packet);
 
     // TODO: print packet frame length
+    std::cout << "Frame length: " << (int)header->len << std::endl;
     // TODO: print packet source IP address
     // TODO: print packet destination IP address
     // TODO: print packet source port
@@ -102,6 +103,8 @@ void Cmuchator::printMacAddresses(const u_char *packet)
         }
     }
     std::cout << std::endl;
+
+    std::cout << std::dec;
 }
 
 void Cmuchator::listInterfaces()
