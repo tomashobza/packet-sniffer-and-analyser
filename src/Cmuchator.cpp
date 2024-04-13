@@ -26,24 +26,51 @@ Cmuchator::~Cmuchator()
 
 void Cmuchator::loop()
 {
-    pcap_loop(handle, options.num, Cmuchator::got_packet, nullptr);
+    int i = 0;
+    while (i < options.num)
+    {
+        struct pcap_pkthdr header;
+        const u_char *packet;
+
+        packet = pcap_next(handle, &header);
+        if (packet == nullptr)
+        {
+            std::cerr << "Failed to capture a packet" << std::endl;
+            pcap_close(handle);
+            return;
+        }
+
+        if (got_packet(&header, packet))
+        {
+            i++;
+        }
+    }
 }
 
-void Cmuchator::got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
+bool Cmuchator::got_packet(const struct pcap_pkthdr *header, const u_char *packet)
 {
-    std::cout << "Got a packet" << std::endl;
-    // TODO: print packet timestamp
-    Cmuchator::printPacketTimestamp(header->ts);
-    // TODO: print packet source MAC address
-    // TODO: print packet destination MAC address
-    Cmuchator::printMacAddresses(packet);
+    struct ether_header *eth_header = (struct ether_header *)packet;
+    if (htons(eth_header->ether_type) != ETHERTYPE_IPV6)
+    {
+        return false;
+    }
 
-    // TODO: print packet frame length
+    std::cout << "Got a packet" << std::endl;
+
+    printPacketTimestamp(header->ts);
+
+    printMacAddresses(packet);
+
     std::cout << "Frame length: " << (int)header->len << std::endl;
-    // TODO: print packet source IP address
-    // TODO: print packet destination IP address
+
+    printIPAddresses(packet);
+
     // TODO: print packet source port
     // TODO: print packet destination port
+
+    std::cout << std::endl;
+
+    return true;
 }
 
 void Cmuchator::printPacketTimestamp(timeval timestamp)
@@ -83,7 +110,7 @@ void Cmuchator::printMacAddresses(const u_char *packet)
     struct ether_header *eth_header = (struct ether_header *)packet;
 
     std::cout << "src MAC: ";
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < ETHER_ADDR_LEN; i++)
     {
         std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)eth_header->ether_shost[i];
         if (i < 5)
@@ -94,7 +121,7 @@ void Cmuchator::printMacAddresses(const u_char *packet)
     std::cout << std::endl;
 
     std::cout << "dst MAC: ";
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < ETHER_ADDR_LEN; i++)
     {
         std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)eth_header->ether_dhost[i];
         if (i < 5)
@@ -105,6 +132,39 @@ void Cmuchator::printMacAddresses(const u_char *packet)
     std::cout << std::endl;
 
     std::cout << std::dec;
+}
+
+void Cmuchator::printIPAddresses(const u_char *packet)
+{
+    struct ether_header *eth_header = (struct ether_header *)packet;
+
+    switch (htons(eth_header->ether_type))
+    {
+    case ETHERTYPE_IP:
+    {
+        struct ip *ip_header = (struct ip *)(packet + ETHER_HDR_LEN);
+
+        std::cout << "src IP: " << inet_ntoa(ip_header->ip_src) << std::endl;
+        std::cout << "dst IP: " << inet_ntoa(ip_header->ip_dst) << std::endl;
+
+        break;
+    }
+    case ETHERTYPE_IPV6:
+    {
+        struct ip6_hdr *ip6_header = (struct ip6_hdr *)(packet + ETHER_HDR_LEN);
+
+        char src_ip_str[INET6_ADDRSTRLEN];
+        char dst_ip_str[INET6_ADDRSTRLEN];
+
+        inet_ntop(AF_INET6, &(ip6_header->ip6_src), src_ip_str, INET6_ADDRSTRLEN);
+        inet_ntop(AF_INET6, &(ip6_header->ip6_dst), dst_ip_str, INET6_ADDRSTRLEN);
+
+        std::cout << "src IP: " << src_ip_str << std::endl;
+        std::cout << "dst IP: " << dst_ip_str << std::endl;
+
+        break;
+    }
+    }
 }
 
 void Cmuchator::listInterfaces()

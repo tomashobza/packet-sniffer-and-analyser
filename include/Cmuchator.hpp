@@ -11,7 +11,9 @@
 #include <string>
 #include <array>
 #include <sstream>
-#include <netinet/if_ether.h>
+#include <netinet/if_ether.h> // for reading Ethernet headers
+#include <netinet/ip.h>       // for reading IPv4 headers
+#include <netinet/ip6.h>      // for reading IPv6 headers
 
 class Cmuchator
 {
@@ -24,10 +26,11 @@ public:
 
     void loop();
 
-    static void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
+    bool got_packet(const struct pcap_pkthdr *header, const u_char *packet);
 
-    static void printPacketTimestamp(timeval timestamp);
-    static void printMacAddresses(const u_char *packet);
+    void printPacketTimestamp(timeval timestamp);
+    void printMacAddresses(const u_char *packet);
+    void printIPAddresses(const u_char *packet);
 
     static void listInterfaces();
 };
