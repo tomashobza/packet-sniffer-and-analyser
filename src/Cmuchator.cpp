@@ -6,6 +6,7 @@ Cmuchator::Cmuchator(SnifferOptions options)
 
     char errbuf[PCAP_ERRBUF_SIZE];
     handle = pcap_open_live(options.interface.c_str(), BUFSIZ, 1, 1000, errbuf);
+    pcap_set_promisc(handle, 1);
 
     if (handle == nullptr)
     {
@@ -32,10 +33,11 @@ void Cmuchator::got_packet(u_char *args, const struct pcap_pkthdr *header, const
 {
     std::cout << "Got a packet" << std::endl;
     // TODO: print packet timestamp
-    printPacketTimestamp(header->ts);
+    Cmuchator::printPacketTimestamp(header->ts);
     // TODO: print packet source MAC address
-
     // TODO: print packet destination MAC address
+    Cmuchator::printMacAddresses(packet);
+
     // TODO: print packet frame length
     // TODO: print packet source IP address
     // TODO: print packet destination IP address
@@ -72,6 +74,34 @@ void Cmuchator::printPacketTimestamp(timeval timestamp)
 
     // Print the formatted timestamp
     std::cout << "Timestamp: " << time_stream.str() << std::endl;
+}
+
+void Cmuchator::printMacAddresses(const u_char *packet)
+{
+    // Point eth_header to the start of the Ethernet header
+    struct ether_header *eth_header = (struct ether_header *)packet;
+
+    std::cout << "src MAC: ";
+    for (int i = 0; i < 6; i++)
+    {
+        std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)eth_header->ether_shost[i];
+        if (i < 5)
+        {
+            std::cout << ":";
+        }
+    }
+    std::cout << std::endl;
+
+    std::cout << "dst MAC: ";
+    for (int i = 0; i < 6; i++)
+    {
+        std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)eth_header->ether_dhost[i];
+        if (i < 5)
+        {
+            std::cout << ":";
+        }
+    }
+    std::cout << std::endl;
 }
 
 void Cmuchator::listInterfaces()
