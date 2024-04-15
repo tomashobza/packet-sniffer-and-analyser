@@ -79,6 +79,8 @@ SnifferOptions ArgParser::parse(int argc, char *argv[])
     return options;
 }
 
+// TODO: check port arguments valid only with tcp or udp arguments
+
 void ArgParser::help()
 {
     std::cout << "Usage: ./ipk-sniffer [-i interface | --interface interface] {-p|--port-source|--port-destination port [--tcp|-t] [--udp|-u]} [--arp] [--icmp4] [--icmp6] [--igmp] [--mld] {-n num} [--help|-h]" << std::endl;

@@ -5,6 +5,7 @@ Cmuchator::Cmuchator(SnifferOptions options)
     this->options = options;
 
     char errbuf[PCAP_ERRBUF_SIZE];
+    // TODO: add arguments to pcap_open_live
     handle = pcap_open_live(options.interface.c_str(), BUFSIZ, 1, 1000, errbuf);
     pcap_set_promisc(handle, 1);
 
@@ -55,18 +56,15 @@ bool Cmuchator::got_packet(const struct pcap_pkthdr *header, const u_char *packe
         return false;
     }
 
-    std::cout << "Got a packet" << std::endl;
-
     printPacketTimestamp(header->ts);
 
     printMacAddresses(packet);
 
-    std::cout << "Frame length: " << (int)header->len << std::endl;
+    std::cout << "frame length: " << (int)header->len << std::endl;
 
     printIPAddresses(packet);
 
-    // TODO: print packet source port
-    // TODO: print packet destination port
+    printPortAddresses(packet);
 
     std::cout << std::endl;
 
@@ -89,8 +87,10 @@ void Cmuchator::printPacketTimestamp(timeval timestamp)
     std::time_t rawtime;
     std::time(&rawtime);
     struct tm *local_tm = std::localtime(&rawtime);
+    int hours = local_tm->tm_hour;
+    int minutes = local_tm->tm_min;
     struct tm *utc_tm = std::gmtime(&rawtime);
-    int timezone_offset = (local_tm->tm_hour - utc_tm->tm_hour) * 60 + (local_tm->tm_min - utc_tm->tm_min);
+    int timezone_offset = (hours - utc_tm->tm_hour) * 60 + (minutes - utc_tm->tm_min);
 
     // Format timezone offset
     char sign = (timezone_offset >= 0) ? '+' : '-';
@@ -101,7 +101,7 @@ void Cmuchator::printPacketTimestamp(timeval timestamp)
                 << std::setfill('0') << std::setw(2) << offset_minutes;
 
     // Print the formatted timestamp
-    std::cout << "Timestamp: " << time_stream.str() << std::endl;
+    std::cout << "timestamp: " << time_stream.str() << std::endl;
 }
 
 void Cmuchator::printMacAddresses(const u_char *packet)
@@ -142,6 +142,7 @@ void Cmuchator::printIPAddresses(const u_char *packet)
     {
     case ETHERTYPE_IP:
     {
+        std::cout << "ethernet type: IPv4" << std::endl;
         struct ip *ip_header = (struct ip *)(packet + ETHER_HDR_LEN);
 
         std::cout << "src IP: " << inet_ntoa(ip_header->ip_src) << std::endl;
@@ -151,6 +152,7 @@ void Cmuchator::printIPAddresses(const u_char *packet)
     }
     case ETHERTYPE_IPV6:
     {
+        std::cout << "ethernet type: IPv6 " << std::endl;
         struct ip6_hdr *ip6_header = (struct ip6_hdr *)(packet + ETHER_HDR_LEN);
 
         char src_ip_str[INET6_ADDRSTRLEN];
@@ -164,6 +166,108 @@ void Cmuchator::printIPAddresses(const u_char *packet)
 
         break;
     }
+    case ETHERTYPE_ARP:
+    {
+        std::cout << "ethernet type: ARP" << std::endl;
+        struct ether_arp *arp_header = (struct ether_arp *)(packet + ETHER_HDR_LEN);
+
+        char src_ip_str[INET_ADDRSTRLEN];
+        char dst_ip_str[INET_ADDRSTRLEN];
+
+        inet_ntop(AF_INET, arp_header->arp_spa, src_ip_str, INET_ADDRSTRLEN);
+        inet_ntop(AF_INET, arp_header->arp_tpa, dst_ip_str, INET_ADDRSTRLEN);
+
+        std::cout << "src IP: " << src_ip_str << std::endl;
+        std::cout << "dst IP: " << dst_ip_str << std::endl;
+
+        break;
+    }
+    default:
+        std::cerr << "Unsupported Ethernet type" << std::endl;
+        break;
+    }
+}
+
+void Cmuchator::printPortAddresses(const u_char *packet)
+{
+    struct ether_header *eth_header = (struct ether_header *)packet;
+
+    const u_short eth_type = htons(eth_header->ether_type);
+
+    switch (eth_type)
+    {
+    case ETHERTYPE_IP:
+    {
+        struct ip *ip_header = (struct ip *)(packet + ETHER_HDR_LEN);
+
+        const u_char protocol = ip_header->ip_p;
+
+        switch (protocol)
+        {
+        case IPPROTO_TCP:
+        {
+            std::cout << "protocol: TCP" << std::endl;
+            struct tcphdr *tcp_header = (struct tcphdr *)(packet + ETHER_HDR_LEN + (ip_header->ip_hl << 2));
+
+            std::cout << "src port: " << ntohs(tcp_header->th_sport) << std::endl;
+            std::cout << "dst port: " << ntohs(tcp_header->th_dport) << std::endl;
+
+            break;
+        }
+        case IPPROTO_UDP:
+        {
+            std::cout << "protocol: UDP" << std::endl;
+            struct udphdr *udp_header = (struct udphdr *)(packet + ETHER_HDR_LEN + (ip_header->ip_hl << 2));
+
+            std::cout << "src port: " << ntohs(udp_header->uh_sport) << std::endl;
+            std::cout << "dst port: " << ntohs(udp_header->uh_dport) << std::endl;
+
+            break;
+        }
+        default:
+            // ICMP and IGMP do not have ports
+            break;
+        }
+        break;
+    }
+    case ETHERTYPE_IPV6:
+    {
+        struct ip6_hdr *ip6_header = (struct ip6_hdr *)(packet + ETHER_HDR_LEN);
+
+        const u_char protocol = ip6_header->ip6_nxt;
+
+        switch (protocol)
+        {
+        case IPPROTO_TCP:
+        {
+            std::cout << "protocol: TCP" << std::endl;
+            struct tcphdr *tcp_header = (struct tcphdr *)(packet + ETHER_HDR_LEN + sizeof(struct ip6_hdr));
+
+            std::cout << "src port: " << ntohs(tcp_header->th_sport) << std::endl;
+            std::cout << "dst port: " << ntohs(tcp_header->th_dport) << std::endl;
+
+            break;
+        }
+        case IPPROTO_UDP:
+        {
+            std::cout << "protocol: UDP" << std::endl;
+            struct udphdr *udp_header = (struct udphdr *)(packet + ETHER_HDR_LEN + sizeof(struct ip6_hdr));
+
+            std::cout << "src port: " << ntohs(udp_header->uh_sport) << std::endl;
+            std::cout << "dst port: " << ntohs(udp_header->uh_dport) << std::endl;
+
+            break;
+        }
+        default:
+            // ICMPv6 does not have ports
+
+            break;
+        }
+        break;
+    }
+    default:
+        // ARP does not have ports
+        break;
     }
 }
 

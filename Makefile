@@ -6,7 +6,7 @@ CXXFLAGS+=-g
 endif
 
 # TODO: change to be root of project before release
-TARGET=bin/ipk-sniffer
+TARGET=ipk-sniffer
 
 TEST_ARGS=-i eth0 -p 23 --tcp -n 2
 

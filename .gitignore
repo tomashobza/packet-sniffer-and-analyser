@@ -1,2 +1,4 @@
 .vscode/
 bin/
+ipk-sniffer
+ipk-sniffer.dSYM/
