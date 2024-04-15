@@ -34,6 +34,7 @@ public:
     void printMacAddresses(const u_char *packet);
     void printIPAddresses(const u_char *packet);
     void printPortAddresses(const u_char *packet);
+    void printData(const u_char *packet, int length);
 
     static void listInterfaces();
 };

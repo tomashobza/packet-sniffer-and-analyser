@@ -66,6 +66,8 @@ bool Cmuchator::got_packet(const struct pcap_pkthdr *header, const u_char *packe
 
     printPortAddresses(packet);
 
+    printData(packet, header->len);
+
     std::cout << std::endl;
 
     return true;
@@ -268,6 +270,52 @@ void Cmuchator::printPortAddresses(const u_char *packet)
     default:
         // ARP does not have ports
         break;
+    }
+}
+
+void Cmuchator::printData(const u_char *packet, int length)
+{
+    const u_char *data = packet + ETHER_HDR_LEN + sizeof(struct ip6_hdr);
+
+    int data_length = length - ETHER_HDR_LEN - sizeof(struct ip6_hdr);
+
+    for (int offset = 0; offset < data_length; offset += 16)
+    {
+        std::cout << "0x" << std::hex << std::setw(4) << std::setfill('0') << offset << ": ";
+
+        int this_line_length = std::min(16, data_length - offset);
+
+        for (int i = 0; i < this_line_length; i++)
+        {
+            std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)data[offset + i] << " ";
+        }
+
+        for (int i = this_line_length; i < 16; i++)
+        {
+            std::cout << "   ";
+        }
+
+        std::cout << " ";
+
+        for (int i = 0; i < this_line_length; i++)
+        {
+            char byte = data[offset + i];
+            if (byte > 31 && byte < 127)
+            {
+                std::cout << byte;
+            }
+            else
+            {
+                std::cout << ".";
+            }
+
+            if (i == 7)
+            {
+                std::cout << " ";
+            }
+        }
+
+        std::cout << std::endl;
     }
 }
 
