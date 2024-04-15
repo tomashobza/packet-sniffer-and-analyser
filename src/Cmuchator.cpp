@@ -1,7 +1,14 @@
 #include "Cmuchator.hpp"
 
+Cmuchator *Cmuchator::inst = nullptr;
+
 Cmuchator::Cmuchator(SnifferOptions options)
 {
+    if (inst != nullptr)
+    {
+        throw std::runtime_error("Only one instance of Cmuchator is allowed");
+    }
+
     this->options = options;
 
     char errbuf[PCAP_ERRBUF_SIZE];
@@ -18,6 +25,8 @@ Cmuchator::Cmuchator(SnifferOptions options)
     {
         throw std::runtime_error("Device does not provide Ethernet headers - not supported");
     }
+
+    Cmuchator::inst = this;
 }
 
 Cmuchator::~Cmuchator()
@@ -339,4 +348,15 @@ void Cmuchator::listInterfaces()
 
     // Free the device list
     pcap_freealldevs(alldevs);
+}
+
+void Cmuchator::handleSignal(int signal)
+{
+    if (signal == SIGINT)
+    {
+        std::cout << "Received SIGINT signal. Exiting..." << std::endl;
+        pcap_breakloop(Cmuchator::inst->handle);
+        pcap_close(Cmuchator::inst->handle);
+        exit(EXIT_SUCCESS);
+    }
 }

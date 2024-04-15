@@ -11,6 +11,7 @@
 #include <string>
 #include <array>
 #include <sstream>
+#include <signal.h>           // for signal handling
 #include <netinet/if_ether.h> // for reading Ethernet headers, ARP headers, etc.
 #include <netinet/ip.h>       // for reading IPv4 headers
 #include <netinet/ip6.h>      // for reading IPv6 headers
@@ -21,6 +22,7 @@ class Cmuchator
 {
     SnifferOptions options;
     pcap_t *handle;
+    static Cmuchator *inst;
 
 public:
     Cmuchator(SnifferOptions options);
@@ -37,6 +39,7 @@ public:
     void printData(const u_char *packet, int length);
 
     static void listInterfaces();
+    static void handleSignal(int signal);
 };
 
 #endif // CMUCHATOR_H

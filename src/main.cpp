@@ -6,6 +6,8 @@
 
 int main(int argc, char *argv[])
 {
+    signal(SIGINT, Cmuchator::handleSignal);
+
     // Read command line arguments
     SnifferOptions options = ArgParser::parse(argc, argv);
 
