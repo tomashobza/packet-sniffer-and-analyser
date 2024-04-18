@@ -1,5 +1,5 @@
-CXX=g++-13
-CXXFLAGS=-std=c++20 -Wall -Wextra -pedantic -lpcap
+CXX=clang++
+CXXFLAGS=-std=c++20 -Wall -Wextra -pedantic -lpcap -arch arm64
 
 ifdef DEBUG
 CXXFLAGS+=-g
