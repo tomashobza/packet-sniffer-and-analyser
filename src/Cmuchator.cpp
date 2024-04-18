@@ -9,12 +9,15 @@ Cmuchator::Cmuchator(SnifferOptions options)
         throw std::runtime_error("Only one instance of Cmuchator is allowed");
     }
 
+    Cmuchator::inst = this;
+
     this->options = options;
 
     char errbuf[PCAP_ERRBUF_SIZE];
     // TODO: add arguments to pcap_open_live
-    handle = pcap_open_live(options.interface.c_str(), BUFSIZ, 1, 1000, errbuf);
+    handle = pcap_open_live(options.interface.c_str(), 65536, 1, 1000, errbuf);
     pcap_set_promisc(handle, 1);
+    pcap_set_datalink(handle, DLT_EN10MB); // LINKTYPE_ETHERNET
 
     if (handle == nullptr)
     {
@@ -26,7 +29,7 @@ Cmuchator::Cmuchator(SnifferOptions options)
         throw std::runtime_error("Device does not provide Ethernet headers - not supported");
     }
 
-    Cmuchator::inst = this;
+    addFilters();
 }
 
 Cmuchator::~Cmuchator()
@@ -34,37 +37,95 @@ Cmuchator::~Cmuchator()
     pcap_close(handle);
 }
 
-void Cmuchator::loop()
+void Cmuchator::addFilter(std::string filter, std::string op = "or")
 {
-    int i = 0;
-    while (i < options.num)
+    if (this->filter.empty())
     {
-        struct pcap_pkthdr header;
-        const u_char *packet;
-
-        packet = pcap_next(handle, &header);
-        if (packet == nullptr)
-        {
-            std::cerr << "Failed to capture a packet" << std::endl;
-            pcap_close(handle);
-            return;
-        }
-
-        if (got_packet(&header, packet))
-        {
-            i++;
-        }
+        this->filter = filter;
+    }
+    else
+    {
+        this->filter += " " + op + "" + filter;
     }
 }
 
-bool Cmuchator::got_packet(const struct pcap_pkthdr *header, const u_char *packet)
+void Cmuchator::addFilters()
 {
-    struct ether_header *eth_header = (struct ether_header *)packet;
-    if (htons(eth_header->ether_type) != ETHERTYPE_IPV6)
+    filter = "";
+
+    if (options.tcp)
     {
-        return false;
+        addFilter("tcp");
+    }
+    if (options.udp)
+    {
+        addFilter("udp");
+    }
+    if (options.arp)
+    {
+        addFilter("arp");
+    }
+    if (options.icmp4)
+    {
+        addFilter("icmp");
+    }
+    if (options.icmp6)
+    {
+        addFilter("icmp6");
+    }
+    if (options.igmp)
+    {
+        addFilter("igmp");
+    }
+    if (options.mld)
+    {
+        addFilter("(icmp6 and ip6[40] >= 130 and ip6[40] <= 132)");
+    }
+    if (options.ndp)
+    {
+        addFilter("(icmp6 and ip6[40] >= 133 and ip6[40] <= 137)");
+    }
+    if (options.port != -1)
+    {
+        addFilter("port " + std::to_string(options.port));
+    }
+    if (options.portSource != -1)
+    {
+        addFilter("src port " + std::to_string(options.portSource));
+    }
+    if (options.portDestination != -1)
+    {
+        addFilter("dst port " + std::to_string(options.portDestination));
     }
 
+    // Compile the filter
+    struct bpf_program fp;
+    if (pcap_compile(handle, &fp, filter.c_str(), 0, PCAP_NETMASK_UNKNOWN) == -1)
+    {
+        std::cerr << "Failed to compile filter: " << pcap_geterr(handle) << std::endl;
+        pcap_close(handle);
+        throw std::runtime_error("Filter compilation failed");
+    }
+
+    if (pcap_setfilter(handle, &fp) == -1)
+    {
+        std::cerr << "Failed to set filter: " << pcap_geterr(handle) << std::endl;
+        pcap_close(handle);
+        throw std::runtime_error("Filter setting failed");
+    }
+}
+
+void Cmuchator::loop()
+{
+    // Loop through packets and call Cmuchator::inst->gotPacket for each one
+    pcap_loop(
+        handle, options.num, [](u_char *user, const struct pcap_pkthdr *header, const u_char *packet)
+        { Cmuchator::inst->gotPacket(header, packet); },
+        nullptr);
+}
+
+bool Cmuchator::gotPacket(const struct pcap_pkthdr *header, const u_char *packet)
+{
     printPacketTimestamp(header->ts);
 
     printMacAddresses(packet);
@@ -284,9 +345,9 @@ void Cmuchator::printPortAddresses(const u_char *packet)
 
 void Cmuchator::printData(const u_char *packet, int length)
 {
-    const u_char *data = packet + ETHER_HDR_LEN + sizeof(struct ip6_hdr);
+    const u_char *data = packet;
 
-    int data_length = length - ETHER_HDR_LEN - sizeof(struct ip6_hdr);
+    int data_length = length;
 
     for (int offset = 0; offset < data_length; offset += 16)
     {

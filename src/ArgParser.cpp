@@ -2,7 +2,21 @@
 
 SnifferOptions ArgParser::parse(int argc, char *argv[])
 {
-    SnifferOptions options;
+    SnifferOptions options = {
+        .interface = "",
+        .port = -1,
+        .tcp = false,
+        .udp = false,
+        .arp = false,
+        .icmp4 = false,
+        .icmp6 = false,
+        .igmp = false,
+        .mld = false,
+        .num = 1,
+        .portSource = -1,
+        .portDestination = -1,
+        .interfaceSpecified = false,
+        .help = false};
 
     struct option longOptions[] = {
         {"interface", required_argument, nullptr, 'i'},
@@ -61,6 +75,9 @@ SnifferOptions ArgParser::parse(int argc, char *argv[])
         case 7: // mld
             options.mld = true;
             break;
+        case 8: // ndp
+            options.ndp = true;
+            break;
         case 'n':
             options.num = std::atoi(optarg);
             break;
@@ -80,6 +97,7 @@ SnifferOptions ArgParser::parse(int argc, char *argv[])
 }
 
 // TODO: check port arguments valid only with tcp or udp arguments
+// TODO: check port specification validity
 
 void ArgParser::help()
 {

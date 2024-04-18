@@ -15,6 +15,7 @@ struct SnifferOptions
     bool icmp6 = false;
     bool igmp = false;
     bool mld = false;
+    bool ndp = false;
     int num = 1; // Default value indicating to display only one packet
     int portSource = -1;
     int portDestination = -1;

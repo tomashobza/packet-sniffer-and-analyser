@@ -23,14 +23,18 @@ class Cmuchator
     SnifferOptions options;
     pcap_t *handle;
     static Cmuchator *inst;
+    std::string filter;
 
 public:
     Cmuchator(SnifferOptions options);
     ~Cmuchator();
 
+    void addFilter(std::string filter, std::string op);
+    void addFilters();
+
     void loop();
 
-    bool got_packet(const struct pcap_pkthdr *header, const u_char *packet);
+    bool gotPacket(const struct pcap_pkthdr *header, const u_char *packet);
 
     void printPacketTimestamp(timeval timestamp);
     void printMacAddresses(const u_char *packet);
