@@ -34,7 +34,7 @@ public:
 
     void loop();
 
-    bool gotPacket(const struct pcap_pkthdr *header, const u_char *packet);
+    bool gotPacket(u_char *user, const struct pcap_pkthdr header, const u_char *packet);
 
     void printPacketTimestamp(timeval timestamp);
     void printMacAddresses(const u_char *packet);
@@ -42,6 +42,7 @@ public:
     void printPortAddresses(const u_char *packet);
     void printData(const u_char *packet, int length);
 
+    static void gotPacketWrapper(u_char *user, const struct pcap_pkthdr *header, const u_char *packet);
     static void listInterfaces();
     static void handleSignal(int signal);
 };

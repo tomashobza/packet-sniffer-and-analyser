@@ -13,16 +13,21 @@ Cmuchator::Cmuchator(SnifferOptions options)
 
     this->options = options;
 
+    if (options.interface.empty())
+    {
+        throw std::runtime_error("Invalid or empty network interface name");
+    }
+
     char errbuf[PCAP_ERRBUF_SIZE];
     // TODO: add arguments to pcap_open_live
     handle = pcap_open_live(options.interface.c_str(), 65536, 1, 1000, errbuf);
-    pcap_set_promisc(handle, 1);
-    pcap_set_datalink(handle, DLT_EN10MB); // LINKTYPE_ETHERNET
-
     if (handle == nullptr)
     {
         throw std::runtime_error(errbuf);
     }
+
+    pcap_set_promisc(handle, 1);
+    pcap_set_datalink(handle, DLT_EN10MB); // LINKTYPE_ETHERNET
 
     if (pcap_datalink(handle) != DLT_EN10MB)
     {
@@ -119,24 +124,25 @@ void Cmuchator::loop()
 {
     // Loop through packets and call Cmuchator::inst->gotPacket for each one
     pcap_loop(
-        handle, options.num, [](u_char *user, const struct pcap_pkthdr *header, const u_char *packet)
-        { Cmuchator::inst->gotPacket(header, packet); },
+        handle, options.num, Cmuchator::gotPacketWrapper,
         nullptr);
 }
 
-bool Cmuchator::gotPacket(const struct pcap_pkthdr *header, const u_char *packet)
+bool Cmuchator::gotPacket(u_char *user, const struct pcap_pkthdr header, const u_char *packet)
 {
-    printPacketTimestamp(header->ts);
+    (void)user;
+
+    printPacketTimestamp(header.ts);
 
     printMacAddresses(packet);
 
-    std::cout << "frame length: " << (int)header->len << std::endl;
+    std::cout << "frame length: " << (int)header.len << std::endl;
 
     printIPAddresses(packet);
 
     printPortAddresses(packet);
 
-    printData(packet, header->len);
+    printData(packet, header.len);
 
     std::cout << std::endl;
 
@@ -387,6 +393,11 @@ void Cmuchator::printData(const u_char *packet, int length)
 
         std::cout << std::endl;
     }
+}
+
+void Cmuchator::gotPacketWrapper(u_char *user, const struct pcap_pkthdr *header, const u_char *packet)
+{
+    Cmuchator::inst->gotPacket(user, *header, packet);
 }
 
 void Cmuchator::listInterfaces()
