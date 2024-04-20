@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <string>
 #include <array>
+#include <vector>
 #include <sstream>
 #include <signal.h>           // for signal handling
 #include <netinet/if_ether.h> // for reading Ethernet headers, ARP headers, etc.

@@ -50,58 +50,126 @@ void Cmuchator::addFilter(std::string filter, std::string op = "or")
     }
     else
     {
-        this->filter += " " + op + "" + filter;
+        this->filter += " " + op + " " + filter;
     }
 }
 
 void Cmuchator::addFilters()
 {
     filter = "";
+    std::vector<std::string> filters;
 
-    if (options.tcp)
+    if (options.tcp || options.udp)
     {
-        addFilter("tcp");
+        std::string filter = "((";
+        if (options.tcp)
+        {
+            filter += "tcp";
+        }
+        if (options.udp)
+        {
+            if (options.tcp)
+            {
+                filter += " or ";
+            }
+            filter += "udp";
+        }
+
+        filter += ")";
+
+        if (options.port != -1)
+        {
+            filter += " and port " + std::to_string(options.port);
+        }
+        if (options.portSource != -1)
+        {
+            filter += " and src port " + std::to_string(options.portSource);
+        }
+        if (options.portDestination != -1)
+        {
+            filter += " and dst port " + std::to_string(options.portDestination);
+        }
+
+        filter += ")";
+        filters.push_back(filter);
     }
-    if (options.udp)
-    {
-        addFilter("udp");
-    }
+
     if (options.arp)
     {
-        addFilter("arp");
+        filters.push_back("arp");
     }
     if (options.icmp4)
     {
-        addFilter("icmp");
+        filters.push_back("icmp");
     }
     if (options.icmp6)
     {
-        addFilter("icmp6");
+        filters.push_back("icmp6");
     }
     if (options.igmp)
     {
-        addFilter("igmp");
+        filters.push_back("igmp");
     }
     if (options.mld)
     {
-        addFilter("(icmp6 and ip6[40] >= 130 and ip6[40] <= 132)");
+        filters.push_back("(icmp6 and ip6[40] >= 130 and ip6[40] <= 132)");
     }
     if (options.ndp)
     {
-        addFilter("(icmp6 and ip6[40] >= 133 and ip6[40] <= 137)");
+        filters.push_back("(icmp6 and ip6[40] >= 133 and ip6[40] <= 137)");
     }
-    if (options.port != -1)
+
+    // if (options.tcp)
+    // {
+    //     addFilter("tcp");
+    // }
+    // if (options.udp)
+    // {
+    //     addFilter("udp");
+    // }
+    // if (options.arp)
+    // {
+    //     addFilter("arp");
+    // }
+    // if (options.icmp4)
+    // {
+    //     addFilter("icmp");
+    // }
+    // if (options.icmp6)
+    // {
+    //     addFilter("icmp6");
+    // }
+    // if (options.igmp)
+    // {
+    //     addFilter("igmp");
+    // }
+    // if (options.mld)
+    // {
+    //     addFilter("(icmp6 and ip6[40] >= 130 and ip6[40] <= 132)");
+    // }
+    // if (options.ndp)
+    // {
+    //     addFilter("(icmp6 and ip6[40] >= 133 and ip6[40] <= 137)");
+    // }
+    // if (options.port != -1)
+    // {
+    //     addFilter("port " + std::to_string(options.port));
+    // }
+    // if (options.portSource != -1)
+    // {
+    //     addFilter("src port " + std::to_string(options.portSource));
+    // }
+    // if (options.portDestination != -1)
+    // {
+    //     addFilter("dst port " + std::to_string(options.portDestination));
+    // }
+
+    for (std::string filter : filters)
     {
-        addFilter("port " + std::to_string(options.port));
+        addFilter(filter);
     }
-    if (options.portSource != -1)
-    {
-        addFilter("src port " + std::to_string(options.portSource));
-    }
-    if (options.portDestination != -1)
-    {
-        addFilter("dst port " + std::to_string(options.portDestination));
-    }
+
+    std::cout << "Filter: " << filter << std::endl;
 
     // Compile the filter
     struct bpf_program fp;
