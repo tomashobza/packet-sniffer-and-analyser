@@ -1,3 +1,10 @@
+/**
+ * @file main.cpp
+ * @author Tomáš Hobza <xhobza03@vutbr.cz>
+ * @brief Main file of the project
+ * @date 2024-04-21
+ */
+
 #include <iostream>
 
 #include "types.hpp"
@@ -6,6 +13,7 @@
 
 int main(int argc, char *argv[])
 {
+    // Handle SIGINT signal
     signal(SIGINT, Cmuchator::handleSignal);
 
     // Read command line arguments

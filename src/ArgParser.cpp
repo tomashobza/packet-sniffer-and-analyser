@@ -1,7 +1,15 @@
+/**
+ * @file ArgParser.hpp
+ * @author Tomáš Hobza <xhobza03@vutbr.cz>
+ * @brief Header file for the ArgParser class
+ * @date 2024-04-21
+ */
+
 #include "ArgParser.hpp"
 
 SnifferOptions ArgParser::parse(int argc, char *argv[])
 {
+    // Default options
     SnifferOptions options = {
         .interface = "",
         .port = -1,
@@ -18,6 +26,7 @@ SnifferOptions ArgParser::parse(int argc, char *argv[])
         .interfaceSpecified = false,
         .help = false};
 
+    // getopt_long options
     struct option longOptions[] = {
         {"interface", required_argument, nullptr, 'i'},
         {"tcp", no_argument, nullptr, 't'},
@@ -35,15 +44,17 @@ SnifferOptions ArgParser::parse(int argc, char *argv[])
         {"help", no_argument, nullptr, 'h'},
         {nullptr, 0, nullptr, 0}};
 
-    int optionIndex = 0;
-    int opt = 0;
+    int optionIndex = 0; // Index of the option
+    int opt = 0;         // The option
+
+    // Parse the options
     while ((opt = getopt_long(argc, argv, "i:p:tun:h", longOptions, &optionIndex)) != -1)
     {
         switch (opt)
         {
         case 'i':
             options.interface = optarg;
-            options.interfaceSpecified = true;
+            options.interfaceSpecified = true; // Interface was specified
             break;
         case 't':
             options.tcp = true;
@@ -93,11 +104,14 @@ SnifferOptions ArgParser::parse(int argc, char *argv[])
         }
     }
 
+    // Check for invalid options
+    if ((options.port >= 0 || options.portSource >= 0 || options.portDestination >= 0) && !options.tcp && !options.udp)
+    {
+        throw std::invalid_argument("Port specified without TCP or UDP");
+    }
+
     return options;
 }
-
-// TODO: check port arguments valid only with tcp or udp arguments
-// TODO: check port specification validity
 
 void ArgParser::help()
 {
