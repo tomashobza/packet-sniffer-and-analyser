@@ -1,0 +1,38 @@
+@startuml sequence-diagram
+
+actor User
+participant "main()" as Main
+participant "ArgParser" as ArgParser
+participant "Cmuchator" as Cmuchator
+participant "pcap" as Pcap
+participant "System" as System
+
+== Initialization ==
+User -> Main : execute(argc, argv)
+Main -> System : signal(SIGINT, Cmuchator::handleSignal)
+
+== Command Line Parsing ==
+Main -> ArgParser : parse(argc, argv)
+ArgParser -> Main : options
+
+== Check for Help ==
+alt options.help is true
+    Main -> ArgParser : help()
+    Main -> Main : return EXIT_SUCCESS
+else options.interfaceSpecified is false
+    Main -> System : cout << "Interface not specified..."
+    Main -> Cmuchator : listInterfaces()
+    Main -> Main : return EXIT_SUCCESS
+else
+    == Create Cmuchator and Start Loop ==
+    Main -> Cmuchator : create(options)
+    Main -> Cmuchator : loop()
+    loop Packet Handling
+        Cmuchator -> Pcap : pcap_loop(handle, options.num, Cmuchator::gotPacketWrapper, nullptr)
+        Pcap -> Cmuchator : gotPacketWrapper(user, header, packet)
+        Cmuchator -> Cmuchator : gotPacket(user, header, packet)
+    end
+    Main -> Main : return EXIT_SUCCESS
+end
+
+@enduml

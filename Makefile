@@ -28,4 +28,8 @@ test:
 	@echo "\x1B[36m" && figlet -f slant "Tests" && echo "\x1B[0m"
 	@python3 test/testikles.py
 
+puml:
+	@echo "Generating UML diagram"
+	plantuml -tsvg docs/*.puml
+
 .PHONY: test

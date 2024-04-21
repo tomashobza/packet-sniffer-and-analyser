@@ -1,0 +1,53 @@
+@startuml class-diagram
+
+!theme _none_
+
+class ArgParser {
+    {static} parse(int, char *[]) : SnifferOptions
+    {static} help() : void
+}
+
+class Cmuchator {
+    - options : SnifferOptions
+    - handle : pcap_t*
+    - {static} inst : Cmuchator*
+    - filter : string
+    __
+    + Cmuchator(options : SnifferOptions)
+    + ~Cmuchator()
+    + addFilter(filter : string, op : string) : void
+    + addFilters() : void
+    + loop() : void
+    + gotPacket(user : u_char*, header : pcap_pkthdr, packet : u_char*) : bool
+    + printPacketTimestamp(timestamp : timeval) : void
+    + printMacAddresses(packet : u_char*) : void
+    + printIPAddresses(packet : u_char*) : void
+    + printPortAddresses(packet : u_char*) : void
+    + printData(packet : u_char*, length : int) : void
+    {static} gotPacketWrapper(user : u_char*, header : pcap_pkthdr*, packet : u_char*) : void
+    {static} listInterfaces() : void
+    {static} handleSignal(signal : int) : void
+}
+
+class SnifferOptions {
+    - interface : string
+    - port : int
+    - tcp : bool
+    - udp : bool
+    - arp : bool
+    - icmp4 : bool
+    - icmp6 : bool
+    - igmp : bool
+    - mld : bool
+    - ndp : bool
+    - num : int
+    - portSource : int
+    - portDestination : int
+    - interfaceSpecified : bool
+    - help : bool
+}
+
+Cmuchator "1" -left- "1" ArgParser : uses >
+Cmuchator "1" *-right- "1" SnifferOptions : has >
+
+@enduml
