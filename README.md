@@ -115,11 +115,25 @@ Manuální testování je ovšem neefektivní pro širší testování, tudíž 
 
 Pro testování fungování filtrů jsem tedy vytvořil testy, které pošlou více paketů jiných typů. V testu je pak kontrolováno kolik paketů a jaké pakety byly programem zpracovány.
 
+Příkladem takového testu je testování filtru pro porty.
+> Testování filtru pro porty
+> 1. Pošleme 5 UDP paketů z toho 3 na port 53 a 2 na port 80
+> 2. Spustíme program s filtrem pro port 53
+> 3. Očekáváme, že program zpracuje 3 pakety
+> 4. Spustíme program s filtrem pro port 80
+> 5. Očekáváme, že program zpracuje 2 pakety
+> 6. Spustíme program s filtrem pro port 53 a 80
+> 7. Očekáváme, že program zpracuje 5 paketů
+> 8. Spustíme program s filtrem pro port 22
+> 9. Očekáváme, že program zpracuje 0 paketů
+> 10. Spustíme program bez filtru
+> 11. Očekáváme, že program zpracuje 5 paketů
+
 ## 📖 Literatura
 
 - [1] **Martìn Casado**. 2001. "The Sniffer's Guide to Raw Traffic". http://yuba.stanford.edu/~casado/pcap/section1.html
 
 - [2] **Tim Carstens**. 2002. "Programming with pcap". https://www.tcpdump.org/pcap.html
-- [3] "Transport layer". https://www.tcpdump.org/pcap.html
+- [3] "EtherType". https://en.wikipedia.org/wiki/EtherType
 - [4] "Data link layer". https://en.wikipedia.org/wiki/Data_link_layer
 - [5] "Network layer". https://en.wikipedia.org/wiki/Network_layer

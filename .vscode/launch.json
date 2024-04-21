@@ -1,42 +1,51 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-      {
-        "type": "cppdbg",
-        // "miDebuggerPath": "/home/tomas/gdb",
-        "miDebuggerPath": "/usr/bin/gdb",
-        "MIMode": "gdb",
-        "request": "launch",
-        "name": "Launch",
-        "program": "${workspaceFolder}/ipk-sniffer",
-        "cwd": "${workspaceFolder}",
-        "args": ["-i", "wlp4s0"],
-        "console": "integratedTerminal",
-        "preLaunchTask": "build",
-        // "stopAtEntry": true,
-        "sudo": true,
-        "environment": [
-          {
-            "name": "MallocScribble",
-            "value": "1"
-          },
-          {
-            "name": "MallocPreScribble",
-            "value": "1"
-          },
-          {
-            "name": "MallocGuardEdges",
-            "value": "1"
-          },
-          {
-            "name": "MallocStackLogging",
-            "value": "1"
-          },
-          {
-            "name": "MallocStackLoggingNoCompact",
-            "value": "1"
-          }
-        ]
-      }
-    ]
-  }
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "cppdbg",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "MIMode": "gdb",
+      "request": "launch",
+      "name": "Launch",
+      "program": "${workspaceFolder}/ipk-sniffer",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "-i",
+        "wlp4s0"
+      ],
+      "console": "integratedTerminal",
+      "preLaunchTask": "build",
+      "sudo": true,
+      "environment": [
+        {
+          "name": "MallocScribble",
+          "value": "1"
+        },
+        {
+          "name": "MallocPreScribble",
+          "value": "1"
+        },
+        {
+          "name": "MallocGuardEdges",
+          "value": "1"
+        },
+        {
+          "name": "MallocStackLogging",
+          "value": "1"
+        },
+        {
+          "name": "MallocStackLoggingNoCompact",
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "lldb",
+      "request": "launch",
+      "args": [],
+      "cwd": "/Users/tomashobza/school/ipk/projekt02/src",
+      "program": "/Users/tomashobza/school/ipk/projekt02/src/build/Debug/outDebug"
+    }
+  ]
+}
