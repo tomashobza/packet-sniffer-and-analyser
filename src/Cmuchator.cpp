@@ -119,57 +119,10 @@ void Cmuchator::addFilters()
         filters.push_back("(icmp6 and ip6[40] >= 133 and ip6[40] <= 137)");
     }
 
-    // if (options.tcp)
-    // {
-    //     addFilter("tcp");
-    // }
-    // if (options.udp)
-    // {
-    //     addFilter("udp");
-    // }
-    // if (options.arp)
-    // {
-    //     addFilter("arp");
-    // }
-    // if (options.icmp4)
-    // {
-    //     addFilter("icmp");
-    // }
-    // if (options.icmp6)
-    // {
-    //     addFilter("icmp6");
-    // }
-    // if (options.igmp)
-    // {
-    //     addFilter("igmp");
-    // }
-    // if (options.mld)
-    // {
-    //     addFilter("(icmp6 and ip6[40] >= 130 and ip6[40] <= 132)");
-    // }
-    // if (options.ndp)
-    // {
-    //     addFilter("(icmp6 and ip6[40] >= 133 and ip6[40] <= 137)");
-    // }
-    // if (options.port != -1)
-    // {
-    //     addFilter("port " + std::to_string(options.port));
-    // }
-    // if (options.portSource != -1)
-    // {
-    //     addFilter("src port " + std::to_string(options.portSource));
-    // }
-    // if (options.portDestination != -1)
-    // {
-    //     addFilter("dst port " + std::to_string(options.portDestination));
-    // }
-
     for (std::string filter : filters)
     {
         addFilter(filter);
     }
-
-    std::cout << "Filter: " << filter << std::endl;
 
     // Compile the filter
     struct bpf_program fp;
