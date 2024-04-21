@@ -1,0 +1,2 @@
+- nejsem si vědom o žádných nedostatcích mého projektu
+- možných rozšíření je velmi mnoho, mít více času, tak bych rád přidat vypis i ostatních datových položek z jednotlivých hlaviček paketu

@@ -32,4 +32,7 @@ puml:
 	@echo "Generating UML diagram"
 	plantuml -tsvg docs/*.puml
 
+zip:
+	zip -r xhobza03.zip src/ include/ Makefile README.md CHANGELOG.md LICENSE
+
 .PHONY: test
